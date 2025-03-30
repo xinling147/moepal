@@ -1,0 +1,35 @@
+<svg width="150" height="150" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+  <!-- 柯基犬睡觉状态 - 像素风格 -->
+  <!-- 背景 -->
+  <rect x="30" y="80" width="90" height="30" fill="white" />
+  
+  <!-- 身体 - 侧躺 -->
+  <rect x="40" y="80" width="60" height="25" fill="#F0A042" /> <!-- 橙色身体 -->
+  
+  <!-- 黑色背部 -->
+  <rect x="40" y="80" width="60" height="10" fill="#333333" />
+  
+  <!-- 腿部 - 侧躺 -->
+  <rect x="45" y="105" width="15" height="5" fill="white" /> <!-- 前腿 -->
+  <rect x="80" y="105" width="15" height="5" fill="white" /> <!-- 后腿 -->
+  
+  <!-- 头部 - 睡觉姿势 -->
+  <rect x="30" y="85" width="20" height="15" fill="#F0A042" /> <!-- 头部主体 -->
+  
+  <!-- 耳朵 - 放松 -->
+  <polygon points="35,85 45,80 50,85" fill="#F0A042" /> <!-- 耳朵 -->
+  <polygon points="37,85 45,82 48,85" fill="#FFC8A0" /> <!-- 耳朵内部 -->
+  
+  <!-- 面部特征 -->
+  <rect x="35" y="90" width="4" height="2" fill="black" /> <!-- 闭着的眼睛 -->
+  <rect x="30" y="95" width="5" height="3" fill="black" /> <!-- 鼻子 -->
+  <rect x="35" y="95" width="10" height="5" fill="white" /> <!-- 白色面部 -->
+  
+  <!-- 睡觉符号 -->
+  <text x="60" y="70" font-family="Arial" font-size="15" fill="#6B6BFF">Z</text>
+  <text x="70" y="60" font-family="Arial" font-size="12" fill="#6B6BFF">Z</text>
+  <text x="80" y="50" font-family="Arial" font-size="10" fill="#6B6BFF">Z</text>
+  
+  <!-- 尾巴 - 放松状态 -->
+  <rect x="100" y="90" width="10" height="5" fill="#F0A042" />
+</svg>

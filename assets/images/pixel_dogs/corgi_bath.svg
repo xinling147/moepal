@@ -1,0 +1,47 @@
+<svg width="150" height="150" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+  <!-- 柯基犬洗澡状态 - 像素风格 -->
+  <!-- 背景 -->
+  <rect x="30" y="70" width="90" height="40" fill="white" />
+  
+  <!-- 浴盆 -->
+  <rect x="40" y="85" width="70" height="25" fill="#87CEFA" /> <!-- 浴盆水 -->
+  <rect x="35" y="85" width="5" height="25" fill="#B0E0E6" /> <!-- 浴盆左边缘 -->
+  <rect x="110" y="85" width="5" height="25" fill="#B0E0E6" /> <!-- 浴盆右边缘 -->
+  <rect x="35" y="110" width="80" height="5" fill="#B0E0E6" /> <!-- 浴盆底部 -->
+  
+  <!-- 泡泡 -->
+  <circle cx="50" cy="80" r="5" fill="white" />
+  <circle cx="65" cy="75" r="4" fill="white" />
+  <circle cx="80" cy="78" r="6" fill="white" />
+  <circle cx="95" cy="76" r="3" fill="white" />
+  
+  <!-- 身体 - 在水中 -->
+  <rect x="50" y="85" width="50" height="20" fill="#F0A042" /> <!-- 橙色身体 -->
+  
+  <!-- 黑色背部 -->
+  <rect x="50" y="85" width="50" height="10" fill="#333333" />
+  
+  <!-- 头部 -->
+  <rect x="30" y="75" width="20" height="20" fill="#F0A042" /> <!-- 头部主体 -->
+  <rect x="25" y="80" width="5" height="10" fill="#F0A042" /> <!-- 鼻子 -->
+  
+  <!-- 耳朵 - 湿漉漉 -->
+  <polygon points="30,75 38,68 42,75" fill="#F0A042" /> <!-- 右耳 -->
+  <polygon points="35,75 43,65 48,75" fill="#F0A042" /> <!-- 左耳 -->
+  <polygon points="32,75 38,70 40,75" fill="#FFC8A0" /> <!-- 右耳内部 -->
+  <polygon points="37,75 43,68 45,75" fill="#FFC8A0" /> <!-- 左耳内部 -->
+  
+  <!-- 面部特征 -->
+  <rect x="27" y="85" width="4" height="4" fill="black" /> <!-- 眼睛 -->
+  <rect x="25" y="90" width="5" height="3" fill="black" /> <!-- 鼻子 -->
+  <rect x="30" y="90" width="10" height="5" fill="white" /> <!-- 白色面部 -->
+  
+  <!-- 嘴巴 - 表情 -->
+  <rect x="30" y="95" width="8" height="2" fill="#FF6B6B" /> <!-- 嘴巴 -->
+  
+  <!-- 前爪 - 水面上 -->
+  <rect x="45" y="80" width="10" height="5" fill="white" /> <!-- 前爪 -->
+  
+  <!-- 尾巴 - 水面上 -->
+  <rect x="100" y="80" width="10" height="5" fill="#F0A042" />
+</svg>
