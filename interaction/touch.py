@@ -28,6 +28,25 @@ class TouchInteraction:
         self.message = ""
         self.message_time = 0
     
+    def handle_event(self, event):
+        """处理pygame事件并转换为触摸事件"""
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # 鼠标按下
+            self.handle_touch(event.pos, True, False)
+            return self.message
+        
+        elif event.type == pygame.MOUSEMOTION and pygame.mouse.get_pressed()[0]:
+            # 鼠标移动（按住左键）
+            self.handle_touch(event.pos, True, True)
+            return self.message
+        
+        elif event.type == pygame.MOUSEBUTTONUP:
+            # 鼠标释放
+            self.handle_touch(event.pos, False, False)
+            return self.message
+        
+        return None
+    
     def handle_touch(self, pos, is_down, is_motion):
         """处理触摸事件"""
         current_time = time.time()

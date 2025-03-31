@@ -25,9 +25,6 @@ class FetchGame:
         self.dog_target = [0, 0]
         self.dog_speed = 5
         
-        # 加载资源
-        self.load_resources()
-        
         # 颜色
         self.colors = {
             "background": (135, 206, 235),  # 天蓝色
@@ -42,6 +39,9 @@ class FetchGame:
         # 字体
         self.font = pygame.font.SysFont("Arial", 24)
         self.font_large = pygame.font.SysFont("Arial", 36)
+        
+        # 加载资源
+        self.load_resources()
     
     def load_resources(self):
         """加载游戏资源"""
