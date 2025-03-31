@@ -4,6 +4,14 @@ import json
 import math
 
 class Dog:
+    # 定义成长阶段
+    GROWTH_STAGES = {
+        0: "幼犬",
+        1: "青年期",
+        2: "成年期",
+        3: "老年期"
+    }
+    
     def __init__(self, name, breed, personality):
         self.name = name
         self.breed = breed
@@ -20,6 +28,8 @@ class Dog:
         self.age = 0  # 以天为单位
         self.level = 1  # 等级
         self.experience = 0  # 经验值
+        self.growth_stage = 0  # 成长阶段：0=幼犬, 1=青年期, 2=成年期, 3=老年期
+        self.affection = 50  # 亲密度
         
         # 个性化属性根据性格设置
         if personality == "活泼":
@@ -92,28 +102,32 @@ class Dog:
             "is_sleeping": self.is_sleeping,
             "sleep_until": self.sleep_until,
             "appearance": self.appearance,
-            "last_update_time": self.last_update_time
+            "last_update_time": self.last_update_time,
+            "growth_stage": self.growth_stage,
+            "affection": self.affection
         }
     
     @classmethod
     def from_dict(cls, data):
         """从字典恢复狗的状态"""
         dog = cls(data["name"], data["breed"], data["personality"])
-        dog.hunger = data["hunger"]
-        dog.happiness = data["happiness"]
-        dog.health = data["health"]
-        dog.cleanliness = data["cleanliness"]
-        dog.energy = data["energy"]
-        dog.age = data["age"]
-        dog.level = data["level"]
-        dog.experience = data["experience"]
-        dog.happiness_decay = data["happiness_decay"]
-        dog.energy_decay = data["energy_decay"]
-        dog.skills = data["skills"]
-        dog.is_sleeping = data["is_sleeping"]
-        dog.sleep_until = data["sleep_until"]
-        dog.appearance = data["appearance"]
-        dog.last_update_time = data["last_update_time"]
+        dog.hunger = data.get("hunger", 100)
+        dog.happiness = data.get("happiness", 100)
+        dog.health = data.get("health", 100)
+        dog.cleanliness = data.get("cleanliness", 100)
+        dog.energy = data.get("energy", 100)
+        dog.age = data.get("age", 0)
+        dog.level = data.get("level", 1)
+        dog.experience = data.get("experience", 0)
+        dog.happiness_decay = data.get("happiness_decay", 1.0)
+        dog.energy_decay = data.get("energy_decay", 1.0)
+        dog.skills = data.get("skills", {})
+        dog.is_sleeping = data.get("is_sleeping", False)
+        dog.sleep_until = data.get("sleep_until", 0)
+        dog.appearance = data.get("appearance", dog._generate_appearance())
+        dog.last_update_time = data.get("last_update_time", time.time())
+        dog.growth_stage = data.get("growth_stage", 0)
+        dog.affection = data.get("affection", 50)
         return dog
     
     def update_status(self, seconds_passed):
@@ -414,6 +428,39 @@ class Dog:
         else:
             return f"{self.name}开心地享受着你的抚摸，尾巴轻轻摇摆。"
     
+    def update_growth_stage(self):
+        """根据年龄更新成长阶段，返回是否有变化"""
+        old_stage = self.growth_stage
+        
+        # 根据年龄确定成长阶段
+        if self.age < 30:  # 30天内为幼犬
+            new_stage = 0
+        elif self.age < 180:  # 6个月内为青年期
+            new_stage = 1
+        elif self.age < 1095:  # 3年内为成年期
+            new_stage = 2
+        else:  # 3年以上为老年期
+            new_stage = 3
+        
+        # 如果成长阶段有变化
+        if new_stage != old_stage:
+            self.growth_stage = new_stage
+            
+            # 成长阶段变化带来的属性调整
+            if new_stage == 1:  # 进入青年期
+                self.energy = min(100, self.energy + 10)
+                self.health = min(100, self.health + 5)
+            elif new_stage == 2:  # 进入成年期
+                self.energy = min(100, self.energy + 5)
+                self.health = min(100, self.health + 10)
+            elif new_stage == 3:  # 进入老年期
+                self.energy = max(30, self.energy - 20)
+                self.happiness = min(100, self.happiness + 10)
+            
+            return True
+        
+        return False
+    
     def get_status(self):
         """获取当前状态"""
         return {
@@ -430,5 +477,7 @@ class Dog:
             "experience": self.experience,
             "skills": self.skills,
             "is_sleeping": self.is_sleeping,
-            "appearance": self.appearance
+            "appearance": self.appearance,
+            "growth_stage": self.growth_stage,
+            "affection": self.affection
         }

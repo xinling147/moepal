@@ -29,13 +29,10 @@
 
 2. 运行应用：
    ```
-   python run.py
+   python main.py
    ```
 
-3. 打开浏览器访问：
-   ```
-   http://localhost:5000
-   ```
+
 
 ## 项目结构
 

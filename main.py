@@ -100,9 +100,9 @@ class Game:
                 return Dog.from_dict(dog_data)
             except Exception as e:
                 print(f"加载宠物数据失败: {e}")
-                return Dog("小狗")
+                return Dog("小狗", "未知品种", "友好")  # 提供所有必需的参数
         else:
-            return Dog("小狗")
+            return Dog("小狗", "未知品种", "友好")  # 提供所有必需的参数
     
     def save_dog(self):
         """保存宠物数据"""
