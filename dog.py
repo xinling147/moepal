@@ -129,7 +129,6 @@ class Dog:
         dog.growth_stage = data.get("growth_stage", 0)
         dog.affection = data.get("affection", 50)
         return dog
-    
     def update_status(self, seconds_passed):
         """更新狗的状态"""
         # 如果在睡觉，检查是否应该醒来
@@ -142,33 +141,37 @@ class Dog:
                 # 睡觉时不会消耗属性
                 return f"{self.name}正在睡觉..."
         
-        # 计算真实流逝的时间（分钟）
+        # 计算真实流逝的时间（分钟）并转换为游戏天数
         minutes_passed = seconds_passed / 60
+        days_passed = minutes_passed / 5  # 5分钟现实时间 = 1天游戏时间
         
-        # 根据时间流逝更新属性
-        self.hunger = max(0, self.hunger - 0.2 * minutes_passed)
-        self.happiness = max(0, self.happiness - 0.3 * minutes_passed * self.happiness_decay)
-        self.cleanliness = max(0, self.cleanliness - 0.15 * minutes_passed)
-        self.energy = max(0, self.energy - 0.1 * minutes_passed * self.energy_decay)
+        # 根据游戏天数更新属性（原来的衰减值乘以5以适应新的时间比例）
+        self.hunger = max(0, self.hunger - 1.0 * days_passed)  # 0.2 * 5 = 1.0
+        self.happiness = max(0, self.happiness - 1.5 * days_passed * self.happiness_decay)  # 0.3 * 5 = 1.5
+        self.cleanliness = max(0, self.cleanliness - 0.75 * days_passed)  # 0.15 * 5 = 0.75
+        self.energy = max(0, self.energy - 0.5 * days_passed * self.energy_decay)  # 0.1 * 5 = 0.5
+        
+        # 更新年龄
+        self.age += days_passed
         
         # 饥饿会影响健康
         if self.hunger < 20:
-            health_penalty = (20 - self.hunger) * 0.05 * minutes_passed
+            health_penalty = (20 - self.hunger) * 0.25 * days_passed  # 0.05 * 5 = 0.25
             self.health = max(0, self.health - health_penalty)
         
         # 清洁度低会影响健康
         if self.cleanliness < 30:
-            health_penalty = (30 - self.cleanliness) * 0.03 * minutes_passed
+            health_penalty = (30 - self.cleanliness) * 0.15 * days_passed  # 0.03 * 5 = 0.15
             self.health = max(0, self.health - health_penalty)
         
         # 快乐度低会影响健康
         if self.happiness < 20:
-            health_penalty = (20 - self.happiness) * 0.02 * minutes_passed
+            health_penalty = (20 - self.happiness) * 0.1 * days_passed  # 0.02 * 5 = 0.1
             self.health = max(0, self.health - health_penalty)
         
         # 健康恢复
         if self.health < 100 and self.hunger > 50 and self.happiness > 50:
-            self.health = min(100, self.health + 0.1 * minutes_passed)
+            self.health = min(100, self.health + 0.5 * days_passed)  # 0.1 * 5 = 0.5
         
         # 检查经验增长和升级
         self.check_level_up()
