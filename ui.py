@@ -256,33 +256,99 @@ class UI:
         dog_size = (150, 150)
         base_path = os.path.join(os.path.dirname(__file__), "assets/images/pixel_dogs")
         
-        # 加载或创建宠物图像
-        self.images["dog_idle"] = safe_load_image(os.path.join(base_path, "corgi_idle.png"), dog_size, "Dog Idle")
-        self.images["dog_eat"] = safe_load_image(os.path.join(base_path, "corgi_eat.png"), dog_size, "Dog Eating")
-        self.images["dog_play"] = safe_load_image(os.path.join(base_path, "corgi_play.png"), dog_size, "Dog Playing")
-        self.images["dog_sleep"] = safe_load_image(os.path.join(base_path, "corgi_sleep.png"), dog_size, "Dog Sleeping")
-        self.images["dog_bath"] = safe_load_image(os.path.join(base_path, "corgi_bath.png"), dog_size, "Dog Bathing")
+        # 根据README.md中的目录结构加载图像
+        # 尝试从不同状态子文件夹中加载图像
+        state_folders = ["normal", "happy", "sad", "sleeping", "sick"]
+        
+        # 为每个状态加载对应的图像
+        for state in state_folders:
+            # 加载每个状态的idle图像
+            idle_path = os.path.join(base_path, state, f"{state}_idle_01.png")
+            if os.path.exists(idle_path) and os.path.getsize(idle_path) > 0:
+                self.images[f"dog_{state}_idle"] = safe_load_image(idle_path, dog_size, f"Dog {state.capitalize()} Idle")
+                print(f"成功加载狗狗{state}待机图像: {idle_path}")
+            else:
+                # 如果找不到特定状态的idle图像，创建占位图像
+                self.images[f"dog_{state}_idle"] = create_placeholder(f"Dog {state.capitalize()} Idle", (200, 200, 200), dog_size)
+                print(f"未找到{state}待机图像，使用占位图像代替")
+        
+        # 确保至少有一个默认的idle图像
+        if "dog_normal_idle" in self.images:
+            self.images["dog_idle"] = self.images["dog_normal_idle"]
+        else:
+            self.images["dog_idle"] = create_placeholder("Dog Idle", (200, 200, 200), dog_size)
+        
+        # 尝试加载其他动作图像
+        action_mappings = {
+            "eat": "eat",
+            "play": "play",
+            "sleep": "sleep",
+            "bath": "bath"
+        }
+        
+        # 为每个状态和动作组合加载图像
+        for state in state_folders:
+            for action_key, action in action_mappings.items():
+                action_path = os.path.join(base_path, state, f"{state}_{action}_01.png")
+                if os.path.exists(action_path) and os.path.getsize(action_path) > 0:
+                    self.images[f"dog_{state}_{action}"] = safe_load_image(action_path, dog_size, f"Dog {state.capitalize()} {action.capitalize()}")
+                    print(f"成功加载狗狗{state} {action}图像: {action_path}")
+                else:
+                    # 如果找不到特定状态和动作的图像，使用该状态的idle图像
+                    self.images[f"dog_{state}_{action}"] = self.images[f"dog_{state}_idle"]
+                    print(f"未找到{state} {action}图像，使用{state} idle图像代替")
+        
+        # 为简单的动作键创建引用
+        for action_key, action in action_mappings.items():
+            self.images[f"dog_{action}"] = self.images[f"dog_normal_{action}"] if f"dog_normal_{action}" in self.images else self.images["dog_idle"]
         
         # 加载背景图像
-        # 尝试加载living_room.jpg和01.jpg作为备选
-        bg_files = ["living_room.jpg", "01.jpg"]
+        # 先检查子文件夹中的背景图片
         bg_loaded = False
+        bg_folders = ["home", "garden", "park", "shop"]
+        bg_files = ["home_day.jpg", "garden_day.jpg", "park_day.jpg", "living_room.jpg", "01.jpg"]
         
-        for bg_file in bg_files:
-            bg_path = os.path.join(os.path.dirname(__file__), "assets/images/backgrounds", bg_file)
-            print(f"尝试加载背景图片: {bg_path}")
+        # 先尝试从子文件夹加载
+        for folder in bg_folders:
+            folder_path = os.path.join(os.path.dirname(__file__), "assets/images/backgrounds", folder)
+            if os.path.exists(folder_path):
+                for file in os.listdir(folder_path):
+                    if file.endswith(".jpg") or file.endswith(".png"):
+                        bg_path = os.path.join(folder_path, file)
+                        print(f"尝试加载背景图片: {bg_path}")
+                        
+                        try:
+                            bg_img = pygame.image.load(bg_path)
+                            # 保存原始背景图片
+                            self.images["background_original"] = bg_img
+                            self.images["background"] = pygame.transform.scale(bg_img, (self.width, self.height))
+                            print(f"成功加载背景图片: {file} (从 {folder} 文件夹)")
+                            bg_loaded = True
+                            break
+                        except Exception as e:
+                            print(f"加载背景图片失败: {file}, 错误: {e}")
+                            continue
             
-            if os.path.exists(bg_path) and os.path.getsize(bg_path) > 0:
-                try:
-                    bg_img = pygame.image.load(bg_path)
-                    # 保存原始背景图片
-                    self.images["background_original"] = bg_img
-                    self.images["background"] = pygame.transform.scale(bg_img, (self.width, self.height))
-                    print(f"成功加载背景图片: {bg_file}")
-                    bg_loaded = True
-                    break
-                except Exception as e:
-                    print(f"加载背景图片失败: {bg_file}, 错误: {e}")
+            if bg_loaded:
+                break
+        
+        # 如果从子文件夹加载失败，尝试从主文件夹加载
+        if not bg_loaded:
+            for bg_file in bg_files:
+                bg_path = os.path.join(os.path.dirname(__file__), "assets/images/backgrounds", bg_file)
+                print(f"尝试加载背景图片: {bg_path}")
+                
+                if os.path.exists(bg_path) and os.path.getsize(bg_path) > 0:
+                    try:
+                        bg_img = pygame.image.load(bg_path)
+                        # 保存原始背景图片
+                        self.images["background_original"] = bg_img
+                        self.images["background"] = pygame.transform.scale(bg_img, (self.width, self.height))
+                        print(f"成功加载背景图片: {bg_file}")
+                        bg_loaded = True
+                        break
+                    except Exception as e:
+                        print(f"加载背景图片失败: {bg_file}, 错误: {e}")
         
         if not bg_loaded:
             print("无法加载任何背景图片，使用纯色背景")
@@ -482,7 +548,7 @@ class UI:
             return None
         
         elif action == "sleep":
-            self.message = self.dog.sleep()
+            self.message = self.dog.sleep(hours=8, is_day=self.time_info["is_day"])
             self.message_time = pygame.time.get_ticks()
             self.current_animation = "sleep"
             self.animation_frame = 0
@@ -756,17 +822,58 @@ class UI:
             # 绘制月牙
             pygame.draw.circle(self.screen, self.colors["night_bg"], (self.width - 225, 22), 8)
     
+    def determine_dog_state(self):
+        """根据狗狗的属性确定当前状态"""
+        # 如果狗狗在睡觉，返回sleeping状态
+        if self.dog.is_sleeping:
+            return "sleeping"
+        
+        # 如果健康值低，返回sick状态
+        if self.dog.health < 30:
+            return "sick"
+        
+        # 如果快乐度低，返回sad状态
+        if self.dog.happiness < 30:
+            return "sad"
+        
+        # 如果快乐度高，返回happy状态
+        if self.dog.happiness > 80:
+            return "happy"
+        
+        # 默认返回normal状态
+        return "normal"
+    
     def render_dog(self):
         """渲染宠物"""
         # 更新动画
         self.update_animation()
         
+        # 确定狗狗当前状态
+        dog_state = self.determine_dog_state()
+        
         # 绘制宠物
         dog_image_key = f"dog_{self.current_animation}"
-        if dog_image_key in self.images:
-            dog_image = self.images[dog_image_key]
+        
+        # 如果是睡觉状态，优先使用睡觉图片
+        if self.dog.is_sleeping:
+            state_image_key = f"dog_sleeping_{self.current_animation}"
+            if state_image_key in self.images:
+                dog_image = self.images[state_image_key]
+            elif "dog_sleeping_idle" in self.images:
+                dog_image = self.images["dog_sleeping_idle"]
+            else:
+                dog_image = self.images[dog_image_key] if dog_image_key in self.images else self.images["dog_idle"]
+        # 否则根据状态选择对应图片
         else:
-            dog_image = self.images["dog_idle"]
+            state_image_key = f"dog_{dog_state}_{self.current_animation}"
+            if state_image_key in self.images:
+                dog_image = self.images[state_image_key]
+            elif f"dog_{dog_state}_idle" in self.images:
+                dog_image = self.images[f"dog_{dog_state}_idle"]
+            elif dog_image_key in self.images:
+                dog_image = self.images[dog_image_key]
+            else:
+                dog_image = self.images["dog_idle"]
         
         # 添加简单的动画效果
         dog_y_offset = math.sin(pygame.time.get_ticks() * 0.005) * 5  # 轻微上下浮动

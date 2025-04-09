@@ -1,0 +1,58 @@
+{
+  "skills": {
+    "sit": {
+      "id": "sit",
+      "name": "坐下",
+      "category": "obedience",
+      "description": "最基础的服从训练技能",
+      "levels": {
+        "1": {
+          "exp_required": 0,
+          "success_rate": 0.6,
+          "reward": {"affection": 2, "exp": 5}
+        },
+        "2": {
+          "exp_required": 100,
+          "success_rate": 0.8,
+          "reward": {"affection": 3, "exp": 8}
+        },
+        "3": {
+          "exp_required": 300,
+          "success_rate": 0.95,
+          "reward": {"affection": 5, "exp": 12}
+        }
+      },
+      "animation": {
+        "duration": 1.5,
+        "frames": ["sit_start", "sit_loop", "sit_end"]
+      }
+    },
+    "fetch": {
+      "id": "fetch",
+      "name": "捡物",
+      "category": "activity",
+      "description": "训练狗狗捡回物品的能力",
+      "levels": {
+        "1": {
+          "exp_required": 0,
+          "success_rate": 0.5,
+          "reward": {"affection": 3, "exp": 8, "energy": -5}
+        },
+        "2": {
+          "exp_required": 200,
+          "success_rate": 0.7,
+          "reward": {"affection": 5, "exp": 12, "energy": -4}
+        },
+        "3": {
+          "exp_required": 500,
+          "success_rate": 0.9,
+          "reward": {"affection": 8, "exp": 15, "energy": -3}
+        }
+      },
+      "animation": {
+        "duration": 2.0,
+        "frames": ["fetch_ready", "fetch_run", "fetch_grab", "fetch_return"]
+      }
+    }
+  }
+}

@@ -129,10 +129,16 @@ class Dog:
         dog.growth_stage = data.get("growth_stage", 0)
         dog.affection = data.get("affection", 50)
         return dog
-    def update_status(self, seconds_passed):
+    def update_status(self, seconds_passed, is_day=False):
         """更新狗的状态"""
         # 如果在睡觉，检查是否应该醒来
         if self.is_sleeping:
+            # 如果是白天，自动唤醒
+            if is_day:
+                self.is_sleeping = False
+                self.energy = min(100, self.energy + 50)  # 睡觉后恢复部分能量
+                return f"{self.name}因为天亮了而醒来，开始活动了！"
+            
             if time.time() >= self.sleep_until:
                 self.is_sleeping = False
                 self.energy = min(100, self.energy + 80)  # 睡觉后恢复能量
@@ -318,11 +324,15 @@ class Dog:
         else:
             return f"{self.name}洗完澡了，看起来很享受，现在非常干净！"
     
-    def sleep(self, hours=8):
+    def sleep(self, hours=8, is_day=False):
         """睡觉"""
         if self.is_sleeping:
             return f"{self.name}已经在睡觉了。"
         
+        # 如果是白天且不需要强制睡觉
+        if is_day:
+            return f"现在是白天，{self.name}精神很好，不想睡觉。"
+            
         # 如果不累
         if self.energy > 80:
             return f"{self.name}现在精力充沛，不想睡觉。"

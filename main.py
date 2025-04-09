@@ -38,14 +38,14 @@ class Game:
         # 时间系统
         self.game_time = 8.0  # 游戏内时间（小时），从早上8点开始
         self.day_length = 24  # 一天的长度（小时）
-        self.time_speed = 60.0  # 时间流速倍率（1分钟现实时间 = 1小时游戏时间）
+        self.time_speed = 12.0  # 时间流速倍率（5分钟现实时间 = 1天游戏时间）
         self.day_cycle = 0  # 当前天数
         
         # 迷你游戏系统
         self.mini_games = {
-            "fetch": FetchGame(self.screen, self.dog),
-            "maze": MazeGame(self.screen, self.dog),
-            "race": RaceGame(self.screen, self.dog)
+            "fetch": FetchGame(self.screen, self.dog, self.ui),
+            "maze": MazeGame(self.screen, self.dog, self.ui),
+            "race": RaceGame(self.screen, self.dog, self.ui)
         }
         self.current_game = None
         
@@ -256,9 +256,12 @@ class Game:
             if current_time >= self.weather_change_time:
                 self.change_weather()
             
+            # 判断是否为白天
+            is_day = 6 <= self.game_time < 18  # 6点到18点为白天
+            
             # 更新宠物状态（使用实际时间流逝）
             if real_elapsed_time >= 10:  # 每10秒现实时间更新一次
-                self.dog.update_status(real_elapsed_time)
+                self.dog.update_status(real_elapsed_time, is_day=is_day)
                 self.last_update_time = current_time
                 self.save_dog()
                 
@@ -272,7 +275,7 @@ class Game:
                 "hour": int(self.game_time),
                 "minute": int((self.game_time % 1) * 60),
                 "day": self.day_cycle,
-                "is_day": 6 <= self.game_time < 18  # 简单的日夜判断：6点到18点为白天
+                "is_day": is_day
             }
             self.ui.update_time(time_info)
             

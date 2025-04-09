@@ -3,9 +3,10 @@ import random
 import time
 
 class MazeGame:
-    def __init__(self, screen, dog):
+    def __init__(self, screen, dog, ui):
         self.screen = screen
         self.dog = dog
+        self.ui = ui
         self.width, self.height = screen.get_size()
         
         # 游戏状态
