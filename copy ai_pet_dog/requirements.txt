@@ -1,0 +1,6 @@
+pygame>=2.0.0
+flask>=2.0.0
+flask-socketio>=5.0.0
+gevent>=21.0.0
+gevent-websocket>=0.10.1
+gunicorn>=20.1.0
