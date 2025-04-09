@@ -1,4 +1,7 @@
-# AI宠物狗狗安装指南
+# 项目简介
+- 虚拟宠物的应用，模拟真实狗狗的一天，用户可以通过与AI交互来照顾宠物（如喂食、玩耍等），宠物的状态（如饥饿、快乐等）会根据用户的操作和AI的随机因素而变化。用户可自定义养的宠物类型，给喜欢宠物但是又没有条件养宠物的朋友带来情绪价值。
+
+# AI虚拟宠物安装指南
 
 ## 功能特点
 
@@ -52,45 +55,12 @@
 python main.py
 ```
 
-#### Web版（基于Flask）
+#### Web版（基于Flask）暂时还未开发完整
 ```
 python app.py
 ```
 然后在浏览器中访问 http://localhost:5000/
 
-## 项目结构
-
-```
-ai_pet_dog/
-├── main.py          # 桌面版主程序入口
-├── app.py           # Web版主程序入口
-├── dog.py           # 宠物类定义
-├── ui.py            # 桌面版用户界面
-├── requirements.txt # 项目依赖
-├── assets/          # 图像和音效资源
-│   ├── images/      # 宠物和界面图像
-│   │   ├── pixel_dogs/  # 宠物图像
-│   │   ├── animations/  # 动画帧序列
-│   │   ├── backgrounds/ # 背景场景
-│   │   └── items/       # 互动物品图像
-│   └── sounds/      # 游戏音效
-├── minigames/       # 迷你游戏模块
-│   ├── fetch.py     # 接飞盘游戏
-│   ├── maze.py      # 迷宫游戏
-│   └── race.py      # 障碍跑游戏
-├── interaction/     # 交互功能模块
-│   ├── voice.py     # 语音识别功能
-│   ├── touch.py     # 触摸和手势识别
-│   └── emotion.py   # 情感反馈系统
-├── templates/       # Web版模板
-│   └── index.html   # 主页面
-├── static/          # Web版静态资源
-│   └── game.js      # Web版游戏逻辑
-└── data/            # 数据存储
-    └── saves/       # 存档文件
-        ├── dog.json  # 桌面版存档
-        └── web/      # Web版存档
-```
 
 ## 宠物创建与互动指南
 
