@@ -66,10 +66,6 @@ class TouchInteraction:
             # 如果是释放，分析手势
             if len(self.touch_points) > 1:
                 self.recognize_gesture()
-            elif len(self.touch_points) == 1:
-                # 单点触摸视为抚摸
-                self.gesture = "pat"
-                self.perform_gesture_action()
             
             # 清空触摸点
             self.touch_points = []
@@ -149,8 +145,9 @@ class TouchInteraction:
     def perform_gesture_action(self):
         """执行手势对应的动作"""
         if self.gesture == "pat":  # 抚摸
-            result = self.dog.pet()
-            self.message = result
+            # 不再触发dog.pet()方法
+            #self.message = f"{self.dog.name}注意到了你的动作。"
+            pass
         
         elif self.gesture == "circle":  # 转圈
             # 检查狗狗是否有"打滚"技能

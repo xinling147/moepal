@@ -334,10 +334,26 @@ class Game:
             if self.current_game:
                 self.mini_games[self.current_game].handle_event(event)
             else:
-                # 将事件传递给触摸交互系统
-                touch_result = self.touch_interaction.handle_event(event)
-                if touch_result:
-                    self.ui.display_message(touch_result)
+                # 先检查是否点击了UI按钮
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse_pos = pygame.mouse.get_pos()
+                    # 检查是否点击了按钮
+                    button_clicked = False
+                    for button in self.ui.buttons.get(self.ui.current_menu, []):
+                        if button["rect"].collidepoint(mouse_pos):
+                            button_clicked = True
+                            break
+                    
+                    # 只有在没有点击按钮时，才传递给触摸交互系统
+                    if not button_clicked:
+                        touch_result = self.touch_interaction.handle_event(event)
+                        if touch_result:
+                            self.ui.display_message(touch_result)
+                else:
+                    # 处理其他类型的事件（鼠标移动、释放等）
+                    touch_result = self.touch_interaction.handle_event(event)
+                    if touch_result:
+                        self.ui.display_message(touch_result)
                 
                 # 将事件传递给UI处理
                 action = self.ui.handle_event(event)

@@ -431,15 +431,24 @@ class Dog:
         
         self.happiness = min(100, self.happiness + happiness_increase)
         
+        # 增加亲密度
+        affection_increase = 5
+        if self.personality == "粘人":
+            affection_increase = 8
+        elif self.personality == "独立":
+            affection_increase = 3
+            
+        self.affection = min(100, self.affection + affection_increase)
+        
         # 增加经验
         self.add_experience(5)
         
         if self.personality == "粘人":
-            return f"{self.name}非常享受你的抚摸，蹭来蹭去，尾巴摇个不停！"
+            return f"{self.name}非常享受你的抚摸，蹭来蹭去尾巴摇个不停！亲密度增加了{affection_increase}点。"
         elif self.personality == "独立":
-            return f"{self.name}接受了你的抚摸，但保持着一定的距离。"
+            return f"{self.name}接受了你的抚摸，但保持着一定的距离。亲密度增加了{affection_increase}点。"
         else:
-            return f"{self.name}开心地享受着你的抚摸，尾巴轻轻摇摆。"
+            return f"{self.name}开心地享受着你的抚摸，尾巴轻轻摇摆。亲密度增加了{affection_increase}点。"
     
     def update_growth_stage(self):
         """根据年龄更新成长阶段，返回是否有变化"""

@@ -13,7 +13,7 @@ class UI:
         # 添加长按检测变量
         self.press_start_time = 0
         self.is_pressing = False
-        self.press_duration_required = 2000  # 长按需要2000毫秒（2秒）
+        self.press_duration_required = 3000  # 长按需要3000毫秒（3秒）
         
         # 颜色定义
         self.colors = {
@@ -120,6 +120,9 @@ class UI:
             "season": "spring",
             "toys": []
         }
+        
+        # 确保在启动时加载家庭场景
+        self.load_background("home")
     
     def load_images(self):
         """加载图像资源，如果不存在则创建占位图像"""
@@ -488,21 +491,29 @@ class UI:
         # 菜单切换
         if action == "main_menu":
             self.current_menu = "main"
+            # 当返回主菜单时，加载家中场景
+            self.load_background("home")
             return None
         elif action == "food_menu":
             self.current_menu = "food"
             return None
         elif action == "play_menu":
             self.current_menu = "play"
+            # 当进入玩耍菜单时，加载公园场景
+            self.load_background("park")
             return None
         elif action == "train_menu":
             self.current_menu = "train"
+            # 当进入训练菜单时，加载花园场景
+            self.load_background("garden")
             return None
         elif action == "minigame_menu":
             self.current_menu = "minigame"
             return None
         elif action == "environment_menu":
             self.current_menu = "environment"
+            # 当进入环境菜单时，加载花园场景
+            self.load_background("garden")
             return None
         
         # 喂食动作
@@ -989,3 +1000,46 @@ class UI:
             text_surf = self.font_small.render(button["text"], True, self.colors["button_text"])
             text_rect = text_surf.get_rect(center=button["rect"].center)
             self.screen.blit(text_surf, text_rect)
+    
+    def load_background(self, scene_type):
+        """加载指定场景类型的背景图像"""
+        # 支持的场景类型
+        if scene_type not in ["home", "park", "garden", "shop"]:
+            print(f"不支持的场景类型: {scene_type}")
+            return
+            
+        # 构建背景图片路径
+        bg_folder = os.path.join(os.path.dirname(__file__), "assets/images/backgrounds", scene_type)
+        
+        # 检查文件夹是否存在
+        if not os.path.exists(bg_folder):
+            print(f"场景文件夹不存在: {bg_folder}")
+            return
+            
+        # 获取文件夹中的所有图片
+        valid_files = []
+        for file in os.listdir(bg_folder):
+            if file.endswith(".jpg") or file.endswith(".png"):
+                valid_files.append(file)
+                
+        # 如果没有找到图片，返回
+        if not valid_files:
+            print(f"在 {scene_type} 文件夹中未找到图片")
+            return
+            
+        # 选择第一张图片（或者可以随机选择一张）
+        bg_file = valid_files[0]
+        bg_path = os.path.join(bg_folder, bg_file)
+        
+        # 尝试加载背景图片
+        try:
+            bg_img = pygame.image.load(bg_path)
+            # 保存原始背景图片
+            self.images["background_original"] = bg_img
+            self.images["background"] = pygame.transform.scale(bg_img, (self.width, self.height))
+            print(f"成功加载{scene_type}场景背景: {bg_file}")
+            
+            # 更新环境信息
+            self.update_environment(self.environment)
+        except Exception as e:
+            print(f"加载背景图片失败: {bg_file}, 错误: {e}")

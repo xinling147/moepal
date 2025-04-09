@@ -175,7 +175,7 @@ def handle_interaction(data):
                     result = f"{dog.name}听到你的命令，表演了{command}！"
                     dog.happiness = min(100, dog.happiness + 5)
                 else:
-                    result = f"{dog.name}似乎不理解"{command}"命令，也许需要先训练这个技能？"
+                    result = f"{dog.name}似乎不理解\"{command}\"命令，也许需要先训练这个技能？"
             elif '喂' in command or '吃' in command:
                 result = dog.feed('普通狗粮')
             elif '玩' in command:
@@ -202,10 +202,10 @@ def handle_interaction(data):
                         new_level = min(5, current_level + score // 5)
                         if new_level > current_level:
                             dog.skills["接飞盘"] = new_level
-                            result = f"{dog.name}的"接飞盘"技能提升到了Lv.{new_level}！"
+                            result = f"{dog.name}的\"接飞盘\"技能提升到了Lv.{new_level}！"
                 elif score >= 3:
                     dog.skills["接飞盘"] = 1
-                    result = f"{dog.name}学会了"接飞盘"技能！"
+                    result = f"{dog.name}学会了\"接飞盘\"技能！"
             
             elif game_type == 'maze':
                 score = game_result.get('score', 0)
@@ -219,10 +219,10 @@ def handle_interaction(data):
                         new_level = min(5, current_level + score // 10)
                         if new_level > current_level:
                             dog.skills["智力游戏"] = new_level
-                            result = f"{dog.name}的"智力游戏"技能提升到了Lv.{new_level}！"
+                            result = f"{dog.name}的\"智力游戏\"技能提升到了Lv.{new_level}！"
                 elif score >= 5:
                     dog.skills["智力游戏"] = 1
-                    result = f"{dog.name}学会了"智力游戏"技能！"
+                    result = f"{dog.name}学会了\"智力游戏\"技能！"
             
             elif game_type == 'race':
                 score = game_result.get('score', 0)
@@ -236,10 +236,10 @@ def handle_interaction(data):
                         new_level = min(5, current_level + score // 20)
                         if new_level > current_level:
                             dog.skills["障碍跑"] = new_level
-                            result = f"{dog.name}的"障碍跑"技能提升到了Lv.{new_level}！"
+                            result = f"{dog.name}的\"障碍跑\"技能提升到了Lv.{new_level}！"
                 elif score >= 10:
                     dog.skills["障碍跑"] = 1
-                    result = f"{dog.name}学会了"障碍跑"技能！"
+                    result = f"{dog.name}学会了\"障碍跑\"技能！"
         
         # 保存宠物数据
         save_pet_data(pet_id, dog)
