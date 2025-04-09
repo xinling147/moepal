@@ -10,6 +10,11 @@ class UI:
         self.dog = dog
         self.width, self.height = screen.get_size()
         
+        # 添加长按检测变量
+        self.press_start_time = 0
+        self.is_pressing = False
+        self.press_duration_required = 2000  # 长按需要2000毫秒（2秒）
+        
         # 颜色定义
         self.colors = {
             "background": (240, 248, 255),  # 淡蓝色背景
@@ -379,15 +384,15 @@ class UI:
         """创建界面按钮"""
         self.buttons = {
             "main": [
-                {"rect": pygame.Rect(50, 400, 100, 40), "text": "喂食", "action": "food_menu"},
-                {"rect": pygame.Rect(170, 400, 100, 40), "text": "玩耍", "action": "play_menu"},
-                {"rect": pygame.Rect(290, 400, 100, 40), "text": "洗澡", "action": "bath"},
-                {"rect": pygame.Rect(410, 400, 100, 40), "text": "睡觉", "action": "sleep"},
-                {"rect": pygame.Rect(530, 400, 100, 40), "text": "训练", "action": "train_menu"},
-                {"rect": pygame.Rect(650, 400, 100, 40), "text": "抚摸", "action": "pet"},
-                {"rect": pygame.Rect(650, 460, 100, 40), "text": "迷你游戏", "action": "minigame_menu"},
-                {"rect": pygame.Rect(50, 460, 100, 40), "text": "语音识别", "action": "toggle_voice"},
-                {"rect": pygame.Rect(170, 460, 100, 40), "text": "环境", "action": "environment_menu"}
+                {"rect": pygame.Rect(50, 435, 100, 40), "text": "喂食", "action": "food_menu"},
+                {"rect": pygame.Rect(170, 435, 100, 40), "text": "玩耍", "action": "play_menu"},
+                {"rect": pygame.Rect(290, 435, 100, 40), "text": "洗澡", "action": "bath"},
+                {"rect": pygame.Rect(410, 435, 100, 40), "text": "睡觉", "action": "sleep"},
+                {"rect": pygame.Rect(530, 435, 100, 40), "text": "训练", "action": "train_menu"},
+                {"rect": pygame.Rect(650, 435, 100, 40), "text": "抚摸", "action": "pet"},
+                {"rect": pygame.Rect(650, 495, 100, 40), "text": "迷你游戏", "action": "minigame_menu"},
+                {"rect": pygame.Rect(50, 495, 100, 40), "text": "语音识别", "action": "toggle_voice"},
+                {"rect": pygame.Rect(170, 495, 100, 40), "text": "环境", "action": "environment_menu"}
             ],
             "food": [
                 {"rect": pygame.Rect(50, 460, 120, 40), "text": "普通狗粮", "action": "feed_normal"},
@@ -435,20 +440,38 @@ class UI:
     
     def handle_event(self, event):
         """处理用户事件"""
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # 左键单击
             # 检查按钮点击
             mouse_pos = pygame.mouse.get_pos()
             action = self.check_button_click(mouse_pos)
+            
+            # 开始长按检测
+            dog_rect = self.images["dog_idle"].get_rect(center=(self.width//2, 250))
+            if dog_rect.collidepoint(mouse_pos):
+                self.press_start_time = pygame.time.get_ticks()
+                self.is_pressing = True
+            
             if action:
                 return action
         
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:  # 左键释放
+            self.is_pressing = False
+            self.press_start_time = 0
+        
         elif event.type == pygame.MOUSEMOTION:
-            # 鼠标移动时检查是否在宠物上，实现抚摸交互
-            mouse_pos = pygame.mouse.get_pos()
-            dog_rect = self.images["dog_idle"].get_rect(center=(self.width//2, 250))
-            if dog_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0]:
-                # 如果在宠物上按住鼠标，触发抚摸动作
-                return self.perform_action("pet")
+            # 检查是否正在长按狗狗
+            if self.is_pressing:
+                mouse_pos = pygame.mouse.get_pos()
+                dog_rect = self.images["dog_idle"].get_rect(center=(self.width//2, 250))
+                if not dog_rect.collidepoint(mouse_pos):  # 如果鼠标移出狗狗区域
+                    self.is_pressing = False
+                    self.press_start_time = 0
+                else:  # 如果仍在狗狗区域内
+                    current_time = pygame.time.get_ticks()
+                    if current_time - self.press_start_time >= self.press_duration_required:
+                        self.is_pressing = False  # 重置长按状态
+                        self.press_start_time = 0
+                        return self.perform_action("pet")  # 触发抚摸动作
         
         return None
     
@@ -493,8 +516,7 @@ class UI:
             }
             food_type = food_map.get(action)
             if food_type:
-                self.message = self.dog.feed(food_type)
-                self.message_time = pygame.time.get_ticks()
+                self.display_message(self.dog.feed(food_type))
                 self.current_animation = "eat"
                 self.animation_frame = 0
                 self.animation_time = pygame.time.get_ticks()
@@ -515,8 +537,7 @@ class UI:
             }
             game_type = game_map.get(action)
             if game_type:
-                self.message = self.dog.play(game_type)
-                self.message_time = pygame.time.get_ticks()
+                self.display_message(self.dog.play(game_type))
                 self.current_animation = "play"
                 self.animation_frame = 0
                 self.animation_time = pygame.time.get_ticks()
@@ -534,30 +555,26 @@ class UI:
             }
             skill_name = skill_map.get(action)
             if skill_name:
-                self.message = self.dog.train(skill_name)
-                self.message_time = pygame.time.get_ticks()
+                self.display_message(self.dog.train(skill_name))
                 return None
         
         # 其他动作
         elif action == "bath":
-            self.message = self.dog.bath()
-            self.message_time = pygame.time.get_ticks()
+            self.display_message(self.dog.bath())
             self.current_animation = "bath"
             self.animation_frame = 0
             self.animation_time = pygame.time.get_ticks()
             return None
         
         elif action == "sleep":
-            self.message = self.dog.sleep(hours=8, is_day=self.time_info["is_day"])
-            self.message_time = pygame.time.get_ticks()
+            self.display_message(self.dog.sleep(hours=8, is_day=self.time_info["is_day"]))
             self.current_animation = "sleep"
             self.animation_frame = 0
             self.animation_time = pygame.time.get_ticks()
             return None
         
         elif action == "pet":
-            self.message = self.dog.pet()
-            self.message_time = pygame.time.get_ticks()
+            self.display_message(self.dog.pet())
             return None
         
         # 将动作返回给游戏主循环
@@ -609,9 +626,10 @@ class UI:
     
     def display_message(self, text, duration=3000):
         """显示消息"""
-        self.message = text
-        self.message_time = pygame.time.get_ticks()
-        self.message_duration = duration
+        if text:  # 只有当有新消息时才更新
+            self.message = text
+            self.message_time = pygame.time.get_ticks()
+            self.message_duration = duration  # 设置消息持续时间为3秒
     
     def update_environment(self, environment):
         """更新环境信息"""
@@ -884,9 +902,9 @@ class UI:
         # 状态栏位置和尺寸
         bar_width = 150
         bar_height = 15
-        bar_spacing = 25
-        start_x = 50
-        start_y = 50
+        bar_spacing = 30  # 增加垂直间距，从25增加到30
+        start_x = 30  # 向左移动，从50减小到30
+        start_y = 60  # 向下移动，从50增加到60
         
         # 状态属性和对应颜色
         status_bars = [
@@ -911,16 +929,16 @@ class UI:
             bar_fill_rect = pygame.Rect(start_x + 60, start_y + i * bar_spacing, bar_fill_width, bar_height)
             pygame.draw.rect(self.screen, bar["color"], bar_fill_rect)
             
-            # 绘制状态值
+            # 绘制状态值，略微向左移动数值位置
             value_surf = self.font_small.render(f"{int(bar['value'])}", True, self.colors["text"])
-            self.screen.blit(value_surf, (start_x + 60 + bar_width + 10, start_y + i * bar_spacing))
+            self.screen.blit(value_surf, (start_x + 60 + bar_width + 5, start_y + i * bar_spacing))
     
     def render_dog_info(self):
         """渲染宠物信息"""
         # 宠物基本信息
-        info_x = 550
-        info_y = 50
-        info_spacing = 25
+        info_x = 620  # 更往右移动，确保不重叠
+        info_y = 60   # 保持与状态栏一致的垂直位置
+        info_spacing = 25  # 减小垂直间距，使信息更紧凑
         
         info_items = [
             {"name": "名称", "value": self.dog.name},
@@ -936,19 +954,23 @@ class UI:
             name_surf = self.font_small.render(f"{item['name']}:", True, self.colors["text"])
             self.screen.blit(name_surf, (info_x, info_y + i * info_spacing))
             
-            # 绘制信息值
+            # 绘制信息值，固定距离确保对齐
             value_surf = self.font_small.render(item["value"], True, self.colors["text"])
-            self.screen.blit(value_surf, (info_x + 70, info_y + i * info_spacing))
+            self.screen.blit(value_surf, (info_x + 75, info_y + i * info_spacing))
         
         # 绘制技能信息
         if self.dog.skills:
+            # 技能标题位置
+            skill_y = info_y + len(info_items) * info_spacing + 10
             skill_title = self.font_medium.render("已学技能:", True, self.colors["text"])
-            self.screen.blit(skill_title, (info_x, info_y + len(info_items) * info_spacing + 10))
+            self.screen.blit(skill_title, (info_x, skill_y))
             
+            # 绘制各技能信息，合理安排位置，更紧凑但不重叠
+            skill_spacing = 22  # 技能间距略小，更紧凑
             for i, (skill_name, skill_level) in enumerate(self.dog.skills.items()):
                 skill_text = f"{skill_name} Lv.{skill_level}"
                 skill_surf = self.font_small.render(skill_text, True, self.colors["text"])
-                self.screen.blit(skill_surf, (info_x + 20, info_y + (len(info_items) + 1) * info_spacing + i * 20))
+                self.screen.blit(skill_surf, (info_x + 15, skill_y + 25 + i * skill_spacing))
     
     def render_buttons(self):
         """渲染按钮"""

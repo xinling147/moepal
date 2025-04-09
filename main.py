@@ -257,7 +257,7 @@ class Game:
                 self.change_weather()
             
             # 判断是否为白天
-            is_day = 6 <= self.game_time < 18  # 6点到18点为白天
+            is_day = 6 <= self.game_time < 19  # 6点到19点为白天
             
             # 更新宠物状态（使用实际时间流逝）
             if real_elapsed_time >= 10:  # 每10秒现实时间更新一次
