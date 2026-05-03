@@ -3,12 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from PySide6.QtCore import QRect
+from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QImage, QPainter
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CAT_SPRITES_DIR = PROJECT_ROOT / "assets" / "sprites" / "cat"
+CAT_SOURCE_DIR = CAT_SPRITES_DIR / "_sources"
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,10 @@ ACTION_SOURCES = {
     "happy_bounce": "idle_lie",
     "look_around": "peek",
     "sit_wait": "idle_lie",
+    "wake_up": "sleep",
+    "stretch": "idle_lie",
+    "concerned": "idle_lie",
+    "walk_edge": "peek",
 }
 
 
@@ -107,6 +112,36 @@ ACTION_TRANSFORMS = {
         FrameTransform(dy=0),
         FrameTransform(dy=-1, scale_y=1.005),
     ],
+    "wake_up": [
+        FrameTransform(dy=2, scale_y=0.99),
+        FrameTransform(dy=1, scale_y=0.995),
+        FrameTransform(dy=0),
+        FrameTransform(dy=-2, scale_y=1.01),
+        FrameTransform(dx=-1, dy=-3, scale_y=1.015),
+        FrameTransform(dx=0, dy=-1, scale_y=1.005),
+    ],
+    "stretch": [
+        FrameTransform(dx=0, dy=1, scale_x=0.98, scale_y=0.99),
+        FrameTransform(dx=-2, dy=0, scale_x=1.02, scale_y=0.98),
+        FrameTransform(dx=-4, dy=-1, scale_x=1.06, scale_y=0.96),
+        FrameTransform(dx=-5, dy=-1, scale_x=1.08, scale_y=0.95),
+        FrameTransform(dx=-3, dy=0, scale_x=1.04, scale_y=0.97),
+        FrameTransform(dx=0, dy=1, scale_x=1.0, scale_y=0.99),
+    ],
+    "concerned": [
+        FrameTransform(dx=0, dy=1, scale_y=0.99),
+        FrameTransform(dx=-1, dy=2, scale_y=0.985),
+        FrameTransform(dx=1, dy=2, scale_y=0.985),
+        FrameTransform(dx=0, dy=1, scale_y=0.99),
+    ],
+    "walk_edge": [
+        FrameTransform(dx=-6, dy=0, mirror=True),
+        FrameTransform(dx=-4, dy=-1, mirror=True),
+        FrameTransform(dx=-2, dy=0, mirror=True),
+        FrameTransform(dx=0, dy=1, mirror=True),
+        FrameTransform(dx=2, dy=0, mirror=True),
+        FrameTransform(dx=4, dy=-1, mirror=True),
+    ],
 }
 
 
@@ -124,7 +159,7 @@ def main() -> None:
 
 
 def _load_source(action_id: str) -> QImage:
-    source_path = CAT_SPRITES_DIR / action_id / "frame_000.png"
+    source_path = CAT_SOURCE_DIR / f"{action_id}.png"
     image = QImage(str(source_path))
     if image.isNull():
         raise FileNotFoundError(source_path)
@@ -132,7 +167,7 @@ def _load_source(action_id: str) -> QImage:
 
 
 def _render_frame(source: QImage, transform: FrameTransform) -> QImage:
-    source_image = source.mirrored(True, False) if transform.mirror else source
+    source_image = source.flipped(Qt.Orientation.Horizontal) if transform.mirror else source
     frame = QImage(source.width(), source.height(), QImage.Format.Format_ARGB32)
     frame.fill(0)
 

@@ -9,13 +9,28 @@ from companion_app.paths import get_sprites_dir
 MIN_FRAME_COUNTS = {
     "idle_lie": 6,
     "sleep": 4,
+    "wake_up": 6,
+    "stretch": 6,
     "peek": 6,
     "nudge": 6,
+    "concerned": 4,
     "tail_wag": 6,
     "happy_bounce": 6,
     "look_around": 4,
+    "walk_edge": 6,
     "sit_wait": 4,
 }
+
+SOURCE_IMAGE_IDS = {"idle_lie", "sleep", "peek", "nudge"}
+
+
+def test_cat_sprite_generator_has_stable_source_images():
+    sprites_dir = get_sprites_dir()
+
+    for source_id in SOURCE_IMAGE_IDS:
+        source_path = sprites_dir / "_sources" / f"{source_id}.png"
+
+        assert source_path.is_file(), source_id
 
 
 def test_primary_cat_actions_have_enough_frames():
