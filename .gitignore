@@ -12,6 +12,8 @@ build/
 venv/
 env/
 ENV/
+.venv/
+.venv312/
 
 # IDE
 .idea/
@@ -26,6 +28,10 @@ ENV/
 
 # Logs
 *.log
+.pytest_cache/
+.pytest-run-*/
+data/pytest-tmp/
+data/run-tmp/
 
 # System Files
 .DS_Store
