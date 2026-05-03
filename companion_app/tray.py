@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, Callable
 
-from PySide6.QtGui import QPainter, QColor, QBrush, QPixmap, QIcon, QAction
+from PySide6.QtCore import QPoint, Qt
+from PySide6.QtGui import QPainter, QColor, QBrush, QPixmap, QIcon, QAction, QPen, QPolygon
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
 
 if TYPE_CHECKING:
@@ -19,30 +21,45 @@ def _build_tray_icon_pixmap(size: int = 32) -> QPixmap:
     p = QPainter(pm)
     p.setRenderHint(QPainter.Antialiasing)
 
-    # Simple round dog-face icon
-    p.setBrush(QBrush(QColor(200, 160, 100)))
-    p.setPen(QColor(80, 60, 40))
-    p.drawEllipse(4, 6, 24, 22)
+    outline = QColor(20, 20, 20)
+    fur = QColor(35, 37, 40)
+    muzzle = QColor(250, 247, 239)
+    pink = QColor(245, 142, 154)
 
-    # ears
-    p.setBrush(QBrush(QColor(180, 130, 70)))
-    p.drawEllipse(5, 2, 8, 10)
-    p.drawEllipse(19, 2, 8, 10)
+    pen = QPen(outline, 2)
+    pen.setJoinStyle(Qt.RoundJoin)
+    p.setPen(pen)
+    p.setBrush(QBrush(fur))
+    p.drawEllipse(6, 8, 20, 18)
+    p.drawPolygon(QPolygon([QPoint(8, 12), QPoint(10, 3), QPoint(15, 11)]))
+    p.drawPolygon(QPolygon([QPoint(17, 11), QPoint(22, 3), QPoint(24, 12)]))
 
-    # eyes
-    p.setBrush(QBrush(QColor(30, 20, 10)))
-    p.drawEllipse(12, 14, 3, 3)
-    p.drawEllipse(21, 14, 3, 3)
+    p.setBrush(QBrush(muzzle))
+    p.drawEllipse(11, 16, 10, 7)
 
-    # nose
-    p.setBrush(QBrush(QColor(40, 20, 10)))
-    p.drawEllipse(16, 17, 3, 3)
+    p.setBrush(QBrush(pink))
+    p.drawEllipse(15, 17, 3, 2)
+
+    p.setBrush(QBrush(QColor(255, 255, 255)))
+    p.drawEllipse(11, 13, 4, 4)
+    p.drawEllipse(19, 13, 4, 4)
+
+    p.setBrush(QBrush(outline))
+    p.drawEllipse(12, 14, 2, 2)
+    p.drawEllipse(20, 14, 2, 2)
 
     p.end()
     return pm
 
 
-def setup_tray(app: QApplication, pet_window: QWidget) -> QSystemTrayIcon:
+def setup_tray(
+    app: QApplication,
+    pet_window: QWidget,
+    *,
+    config: dict | None = None,
+    config_path: Path | None = None,
+    on_config_saved: Callable[[dict], None] | None = None,
+) -> QSystemTrayIcon:
     tray = QSystemTrayIcon()
     tray.setIcon(QIcon(_build_tray_icon_pixmap()))
     tray.setToolTip("桌面宠物")
@@ -56,7 +73,12 @@ def setup_tray(app: QApplication, pet_window: QWidget) -> QSystemTrayIcon:
     menu.addSeparator()
 
     settings_action = QAction("设置")
-    settings_action.setEnabled(False)
+    if config is None or config_path is None:
+        settings_action.setEnabled(False)
+    else:
+        settings_action.triggered.connect(
+            lambda: _show_settings_dialog(pet_window, config, config_path, on_config_saved)
+        )
     menu.addAction(settings_action)
 
     menu.addSeparator()
@@ -70,3 +92,21 @@ def setup_tray(app: QApplication, pet_window: QWidget) -> QSystemTrayIcon:
 
     logger.info("System tray icon created.")
     return tray
+
+
+def _show_settings_dialog(
+    parent: QWidget,
+    config: dict,
+    config_path: Path,
+    on_config_saved: Callable[[dict], None] | None = None,
+) -> None:
+    from companion_app.settings_window import SettingsDialog
+
+    dialog = SettingsDialog(
+        config=config,
+        config_path=config_path,
+        on_saved=on_config_saved,
+        parent=parent,
+    )
+    parent._settings_dialog = dialog
+    dialog.show()

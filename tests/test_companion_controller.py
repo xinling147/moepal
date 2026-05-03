@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -119,6 +119,7 @@ def _controller(
     provider: FakeSpeechProvider | None = None,
     state: PetState | None = None,
     bubble_enabled: bool = True,
+    clock=None,
 ):
     from companion_app.core.controller import CompanionController
 
@@ -137,6 +138,7 @@ def _controller(
         speech_provider=provider,
         pet_state=state,
         bubble_enabled=bubble_enabled,
+        clock=clock,
     )
     return controller, tracker, engine, animator, window, provider, state
 
@@ -241,6 +243,60 @@ def test_handle_edge_pose_requests_pose_action_for_current_edge():
     assert state.current_action == "peek"
 
 
+def test_handle_user_interaction_click_triggers_happy_bounce():
+    animator = FakeAnimator()
+    state = PetState(personality="gentle", mood="calm", current_action="idle_lie")
+    controller, _, _, animator, _, _, state = _controller(
+        animator=animator,
+        state=state,
+    )
+
+    controller.handle_user_interaction("click")
+
+    assert animator.requested_actions == ["happy_bounce"]
+    assert state.current_action == "happy_bounce"
+    assert state.mood == "happy"
+
+
+def test_handle_user_interaction_tease_triggers_tail_wag():
+    animator = FakeAnimator()
+    controller, _, _, animator, _, _, state = _controller(animator=animator)
+
+    controller.handle_user_interaction("tease")
+
+    assert animator.requested_actions == ["tail_wag"]
+    assert state.current_action == "tail_wag"
+    assert state.mood == "happy"
+
+
+def test_handle_user_interaction_hover_triggers_look_around():
+    animator = FakeAnimator()
+    controller, _, _, animator, _, _, state = _controller(animator=animator)
+
+    controller.handle_user_interaction("hover")
+
+    assert animator.requested_actions == ["look_around"]
+    assert state.current_action == "look_around"
+    assert state.mood == "curious"
+
+
+def test_handle_user_interaction_throttles_repeated_mouse_events():
+    now = datetime(2026, 5, 3, 15, 0, 0)
+
+    def clock():
+        return now
+
+    animator = FakeAnimator()
+    controller, _, _, animator, _, _, _ = _controller(animator=animator, clock=clock)
+
+    controller.handle_user_interaction("tease")
+    controller.handle_user_interaction("tease")
+    now += timedelta(seconds=2)
+    controller.handle_user_interaction("tease")
+
+    assert animator.requested_actions == ["tail_wag", "tail_wag"]
+
+
 def test_tick_behavior_updates_pet_state_current_action_and_mood():
     state = PetState(personality="gentle", mood="calm", current_action="idle_lie")
     controller, _, _, _, _, _, state = _controller(
@@ -257,3 +313,23 @@ def test_tick_behavior_updates_pet_state_current_action_and_mood():
 
     assert state.current_action == "concerned"
     assert state.mood == "concerned"
+
+
+def test_apply_runtime_settings_updates_personality_bubbles_and_provider():
+    original_provider = FakeSpeechProvider(line="old")
+    new_provider = FakeSpeechProvider(line="new")
+    state = PetState(personality="gentle", mood="calm")
+    controller, _, _, _, _, _, state = _controller(
+        provider=original_provider,
+        state=state,
+        bubble_enabled=True,
+    )
+
+    controller.apply_runtime_settings(
+        {"personality": "lively", "bubble_enabled": False},
+        speech_provider=new_provider,
+    )
+
+    assert state.personality == "lively"
+    assert controller._bubble_enabled is False
+    assert controller._speech_provider is new_provider

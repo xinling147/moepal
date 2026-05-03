@@ -19,11 +19,16 @@ from companion_app.platform.windows_topmost import ensure_window_topmost
 
 class PetWindow(QWidget):
     edge_changed = Signal(str, int)
+    pet_clicked = Signal()
+    pet_hovered = Signal()
+    pet_teased = Signal()
 
     def __init__(self, pet_size: int = 128):
         super().__init__()
         self._pet_size = pet_size
         self._drag_offset: QPoint | None = None
+        self._drag_start_pos: QPoint | None = None
+        self._dragging = False
         self._attached_edge = "bottom"
         self._reanchor_on_resize = False
 
@@ -34,6 +39,7 @@ class PetWindow(QWidget):
             | Qt.NoDropShadowWindowHint
         )
         self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setMouseTracking(True)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -109,10 +115,8 @@ class PetWindow(QWidget):
         """Display *pixmap* as the current pet frame."""
         if pixmap.isNull():
             return
-        from companion_app.animation.sprites import clean_sprite_pixmap, trim_transparent_pixmap
 
-        trimmed = trim_transparent_pixmap(clean_sprite_pixmap(pixmap))
-        scaled = trimmed.scaled(
+        scaled = pixmap.scaled(
             self._pet_size, self._pet_size,
             Qt.KeepAspectRatio, Qt.SmoothTransformation,
         )
@@ -259,16 +263,35 @@ class PetWindow(QWidget):
 
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
         if event.button() == Qt.LeftButton:
-            self._drag_offset = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            global_pos = event.globalPosition().toPoint()
+            self._drag_start_pos = global_pos
+            self._drag_offset = global_pos - self.frameGeometry().topLeft()
+            self._dragging = False
 
     def mouseMoveEvent(self, event) -> None:  # type: ignore[override]
-        if self._drag_offset is not None:
-            self.move(event.globalPosition().toPoint() - self._drag_offset)
+        global_pos = event.globalPosition().toPoint()
+        if self._drag_offset is not None and self._drag_start_pos is not None:
+            if (global_pos - self._drag_start_pos).manhattanLength() >= 4:
+                self._dragging = True
+                self.move(global_pos - self._drag_offset)
+            return
+
+        self.pet_teased.emit()
 
     def mouseReleaseEvent(self, event) -> None:  # type: ignore[override]
         if event.button() == Qt.LeftButton:
+            was_dragging = self._dragging
             self._drag_offset = None
-            self.snap_to_nearest_edge()
+            self._drag_start_pos = None
+            self._dragging = False
+            if was_dragging:
+                self.snap_to_nearest_edge()
+            else:
+                self.pet_clicked.emit()
+
+    def enterEvent(self, event) -> None:  # type: ignore[override]
+        super().enterEvent(event)
+        self.pet_hovered.emit()
 
 
 class BubbleDispatcher(QObject):
@@ -289,14 +312,12 @@ def main() -> None:
     from companion_app.config import load_config
     from companion_app.paths import get_config_path, get_sprites_dir
 
-    config = load_config(get_config_path())
+    config_path = get_config_path()
+    config = load_config(config_path)
     pet_size = int(config.get("pet_size", 128))
 
     window = PetWindow(pet_size)
     window.show()
-
-    from companion_app.tray import setup_tray
-    tray = setup_tray(app, window)
 
     from companion_app.activity.session_tracker import SessionTracker
     from companion_app.animation.animator import Animator
@@ -324,6 +345,26 @@ def main() -> None:
         bubble_enabled=bool(config.get("bubble_enabled", True)),
     )
     window.edge_changed.connect(controller.handle_edge_pose)
+    window.pet_clicked.connect(lambda: controller.handle_user_interaction("click"))
+    window.pet_hovered.connect(lambda: controller.handle_user_interaction("hover"))
+    window.pet_teased.connect(lambda: controller.handle_user_interaction("tease"))
+
+    def apply_saved_settings(updated_config: dict) -> None:
+        provider = (
+            build_async_speech_provider(updated_config, bubble_dispatcher.show_line)
+            if updated_config.get("ai_enabled", False)
+            else build_speech_provider(updated_config)
+        )
+        controller.apply_runtime_settings(updated_config, speech_provider=provider)
+
+    from companion_app.tray import setup_tray
+    tray = setup_tray(
+        app,
+        window,
+        config=config,
+        config_path=config_path,
+        on_config_saved=apply_saved_settings,
+    )
 
     animation_timer = QTimer(window)
     animation_timer.timeout.connect(lambda: controller.tick_animation(0.1))
