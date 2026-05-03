@@ -239,8 +239,8 @@ def test_handle_edge_pose_requests_pose_action_for_current_edge():
 
     controller.handle_edge_pose("right", bottom_gap=180)
 
-    assert animator.requested_actions == ["peek"]
-    assert state.current_action == "peek"
+    assert animator.requested_actions == ["walk_edge"]
+    assert state.current_action == "walk_edge"
 
 
 def test_handle_user_interaction_click_triggers_happy_bounce():
