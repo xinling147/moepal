@@ -117,6 +117,23 @@ def test_looping_action_loops_indefinitely():
     assert anim.current_action_id == "idle_lie"
 
 
+def test_requesting_current_action_does_not_reset_frame_or_reload():
+    load_calls: list[str] = []
+
+    def loader(action_id: str) -> list[str]:
+        load_calls.append(action_id)
+        return [f"{action_id}/0", f"{action_id}/1", f"{action_id}/2"]
+
+    anim = Animator(loader, initial_action="idle_lie")
+    anim.update(1.0 / ACTIONS["idle_lie"].fps)
+    assert anim.get_current_frame() == "idle_lie/1"
+
+    anim.request_action("idle_lie")
+
+    assert anim.get_current_frame() == "idle_lie/1"
+    assert load_calls == ["idle_lie"]
+
+
 # ---- TC-23: 请求不存在的动作 ID 不崩溃 --------------------------------------
 
 def test_request_unknown_action_does_not_crash(caplog):

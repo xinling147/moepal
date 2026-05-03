@@ -213,8 +213,11 @@ def load_frames(action_id: str, base_path: Path):
 
 def create_frame_loader(sprites_base_path: Path):
     """Return a FrameLoader callable suitable for Animator."""
+    cache: dict[str, list] = {}
 
     def _loader(action_id: str):
-        return load_frames(action_id, sprites_base_path)
+        if action_id not in cache:
+            cache[action_id] = load_frames(action_id, sprites_base_path)
+        return list(cache[action_id])
 
     return _loader

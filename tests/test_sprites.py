@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from companion_app.animation.sprites import _discover_frame_files
+from companion_app.animation.sprites import _discover_frame_files, create_frame_loader
 
 
 @pytest.fixture
@@ -86,6 +86,26 @@ def test_discover_frames_handles_empty_action_directory(sprites_base):
     # Falls back to idle_lie
     assert len(result) == 1
     assert result[0].parent.name == "idle_lie"
+
+
+def test_create_frame_loader_caches_frames_per_action(monkeypatch, sprites_base):
+    calls: list[tuple[str, Path]] = []
+
+    def fake_load_frames(action_id: str, base_path: Path) -> list[str]:
+        calls.append((action_id, base_path))
+        return [f"{action_id}/0"]
+
+    monkeypatch.setattr("companion_app.animation.sprites.load_frames", fake_load_frames)
+    loader = create_frame_loader(sprites_base)
+
+    assert loader("tail_wag") == ["tail_wag/0"]
+    assert loader("tail_wag") == ["tail_wag/0"]
+    assert loader("peek") == ["peek/0"]
+
+    assert calls == [
+        ("tail_wag", sprites_base),
+        ("peek", sprites_base),
+    ]
 
 
 # ---- helper -----------------------------------------------------------------

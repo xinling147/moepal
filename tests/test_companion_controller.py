@@ -333,3 +333,24 @@ def test_apply_runtime_settings_updates_personality_bubbles_and_provider():
     assert state.personality == "lively"
     assert controller._bubble_enabled is False
     assert controller._speech_provider is new_provider
+
+
+def test_request_manual_action_sets_animator_action_and_state():
+    animator = FakeAnimator()
+    controller, _, _, animator, _, _, state = _controller(animator=animator)
+
+    controller.request_manual_action("stretch")
+
+    assert animator.requested_actions == ["stretch"]
+    assert state.current_action == "stretch"
+    assert state.mood == "calm"
+
+
+def test_request_manual_action_ignores_unknown_action():
+    animator = FakeAnimator()
+    controller, _, _, animator, _, _, state = _controller(animator=animator)
+
+    controller.request_manual_action("missing")
+
+    assert animator.requested_actions == []
+    assert state.current_action == "idle_lie"

@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Callable
 
+from companion_app.animation.actions import ACTIONS
 from companion_app.core.pet_state import PetState
 from companion_app.core.edge_pose import choose_edge_action
 from companion_app.privacy import build_privacy_context
@@ -105,6 +106,13 @@ class CompanionController:
         if speech_provider is not None:
             self._speech_provider = speech_provider
 
+    def request_manual_action(self, action_id: str) -> None:
+        if action_id not in ACTIONS:
+            return
+        self._animator.request_action(action_id)
+        self._pet_state.current_action = action_id
+        self._pet_state.mood = self._mood_for_action(action_id)
+
     def _interaction_allowed(self, interaction_type: str) -> bool:
         now = self._clock()
         last = self._last_interaction_at.get(interaction_type)
@@ -115,16 +123,23 @@ class CompanionController:
 
     @staticmethod
     def _infer_mood(action_id: str, event: Any) -> str:
+        mood = CompanionController._mood_for_action(action_id)
+        if mood != "calm":
+            return mood
+        if getattr(event, "type", "") == "return_from_idle":
+            return "happy"
+        return "calm"
+
+    @staticmethod
+    def _mood_for_action(action_id: str) -> str:
         if action_id == "concerned":
             return "concerned"
         if action_id in {"sleep", "sit_wait"}:
             return "sleepy"
         if action_id in {"wake_up", "tail_wag", "happy_bounce"}:
             return "happy"
-        if action_id in {"look_around", "peek"}:
+        if action_id in {"look_around", "peek", "walk_edge"}:
             return "curious"
-        if getattr(event, "type", "") == "return_from_idle":
-            return "happy"
         return "calm"
 
 

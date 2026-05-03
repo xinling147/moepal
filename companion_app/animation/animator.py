@@ -52,6 +52,9 @@ class Animator:
             logger.warning("Unknown action '%s', ignoring.", action_id)
             return
 
+        if action_id == self._current_action_id:
+            return
+
         if not self._current_action_def.interruptible:
             logger.debug(
                 "Action '%s' is not interruptible, queuing '%s'.",

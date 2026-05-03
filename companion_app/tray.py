@@ -8,6 +8,8 @@ from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QPainter, QColor, QBrush, QPixmap, QIcon, QAction, QPen, QPolygon
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
 
+from companion_app.animation.actions import ACTIONS
+
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QApplication, QWidget
 
@@ -59,20 +61,21 @@ def setup_tray(
     config: dict | None = None,
     config_path: Path | None = None,
     on_config_saved: Callable[[dict], None] | None = None,
+    on_action_requested: Callable[[str], None] | None = None,
 ) -> QSystemTrayIcon:
     tray = QSystemTrayIcon()
     tray.setIcon(QIcon(_build_tray_icon_pixmap()))
     tray.setToolTip("桌面宠物")
 
-    menu = QMenu()
+    menu = QMenu(pet_window)
 
-    toggle_action = QAction("显示/隐藏宠物")
+    toggle_action = QAction("显示/隐藏宠物", menu)
     toggle_action.triggered.connect(lambda: pet_window.setVisible(not pet_window.isVisible()))
     menu.addAction(toggle_action)
 
     menu.addSeparator()
 
-    settings_action = QAction("设置")
+    settings_action = QAction("设置", menu)
     if config is None or config_path is None:
         settings_action.setEnabled(False)
     else:
@@ -81,17 +84,64 @@ def setup_tray(
         )
     menu.addAction(settings_action)
 
+    if on_action_requested is not None:
+        _add_action_test_menu(menu, on_action_requested)
+
     menu.addSeparator()
 
-    quit_action = QAction("退出")
+    quit_action = QAction("退出", menu)
     quit_action.triggered.connect(app.quit)
     menu.addAction(quit_action)
 
     tray.setContextMenu(menu)
+    tray.activated.connect(
+        lambda reason: _handle_tray_activation(
+            reason,
+            pet_window,
+            config,
+            config_path,
+            on_config_saved,
+        )
+    )
     tray.show()
+    tray._companion_menu = menu
 
     logger.info("System tray icon created.")
     return tray
+
+
+def _handle_tray_activation(
+    reason: QSystemTrayIcon.ActivationReason,
+    parent: QWidget,
+    config: dict | None,
+    config_path: Path | None,
+    on_config_saved: Callable[[dict], None] | None = None,
+) -> None:
+    if reason not in {
+        QSystemTrayIcon.ActivationReason.Trigger,
+        QSystemTrayIcon.ActivationReason.DoubleClick,
+    }:
+        return
+    if config is None or config_path is None:
+        return
+    _show_settings_dialog(parent, config, config_path, on_config_saved)
+
+
+def _add_action_test_menu(
+    menu: QMenu,
+    on_action_requested: Callable[[str], None],
+) -> QMenu:
+    action_menu = QMenu("动作测试", menu)
+    menu.addMenu(action_menu)
+    for action_id in ACTIONS:
+        action = QAction(action_id, action_menu)
+        action.setData(action_id)
+        action.triggered.connect(
+            lambda _checked=False, requested_action=action_id: on_action_requested(requested_action)
+        )
+        action_menu.addAction(action)
+    menu._action_test_menu = action_menu
+    return action_menu
 
 
 def _show_settings_dialog(
