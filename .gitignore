@@ -33,6 +33,28 @@ ENV/
 data/pytest-tmp/
 data/run-tmp/
 
+# pytest temp
+.pytest-tmp/
+
+# Local user config
+data/config.json
+
+# Competition materials (not for public repo)
+competition/
+docs/competition/
+
+# Runtime user data (pet saves, etc.)
+data/saves/
+
+# AI collaboration local config
+.claude/
+
+# PyInstaller build spec
+*.spec
+
+# Archived docs
+docs/archive/
+
 # System Files
 .DS_Store
 Thumbs.db
