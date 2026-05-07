@@ -364,7 +364,7 @@ def main() -> None:
         config=config,
         config_path=config_path,
         on_config_saved=apply_saved_settings,
-        on_action_requested=controller.request_manual_action,
+        on_action_triggered=controller.request_manual_action,
     )
 
     animation_timer = QTimer(window)

@@ -35,32 +35,36 @@ def test_handle_tray_activation_opens_settings_on_left_click(monkeypatch, tmp_pa
     assert calls == [(parent, config, config_path, callback)]
 
 
-def test_add_action_test_menu_wires_every_action():
+def test_action_test_item_adds_menu_entry_and_opens_dialog(monkeypatch):
     _app()
-    triggered = []
+    calls = []
+
+    def fake_show_dialog(parent, on_action_triggered):
+        calls.append(("show", parent, on_action_triggered))
+
+    monkeypatch.setattr(
+        "companion_app.tray._show_action_test_dialog", fake_show_dialog
+    )
+
+    from companion_app.tray import _add_action_test_item
+
     menu = QMenu()
+    parent = QWidget()
+    _add_action_test_item(menu, lambda aid: None, parent)
 
-    from companion_app.animation.actions import ACTIONS
-    from companion_app.tray import _add_action_test_menu
+    action_texts = [a.text() for a in menu.actions()]
+    assert "动作测试" in action_texts
 
-    action_menu = _add_action_test_menu(menu, triggered.append)
-    actions_by_id = {
-        action.data(): action
-        for action in action_menu.actions()
-        if action.data()
-    }
+    action_item = next(a for a in menu.actions() if a.text() == "动作测试")
+    action_item.trigger()
 
-    assert set(actions_by_id) == set(ACTIONS)
-
-    actions_by_id["happy_bounce"].trigger()
-
-    assert triggered == ["happy_bounce"]
+    assert len(calls) == 1
+    assert calls[0][0] == "show"
 
 
-def test_setup_tray_context_menu_keeps_actions_alive(tmp_path):
+def test_setup_tray_context_menu_has_action_test_item(tmp_path):
     _app()
 
-    from companion_app.animation.actions import ACTIONS
     from companion_app.tray import setup_tray
 
     window = QWidget()
@@ -69,7 +73,7 @@ def test_setup_tray_context_menu_keeps_actions_alive(tmp_path):
         window,
         config={"ai_enabled": False},
         config_path=tmp_path / "config.json",
-        on_action_requested=lambda _action_id: None,
+        on_action_triggered=lambda _action_id: None,
     )
 
     menu = tray.contextMenu()
@@ -79,11 +83,3 @@ def test_setup_tray_context_menu_keeps_actions_alive(tmp_path):
     assert "设置" in top_level_texts
     assert "动作测试" in top_level_texts
     assert "退出" in top_level_texts
-
-    action_menu = next(
-        action.menu()
-        for action in menu.actions()
-        if action.text() == "动作测试"
-    )
-
-    assert len(action_menu.actions()) == len(ACTIONS)

@@ -169,7 +169,7 @@ def test_payload_uses_anthropic_messages_shape_with_default_deepseek_model(
     call = transport.calls[0]
     payload = call["payload"]
     assert call["timeout"] == 7
-    assert set(payload) == {"model", "max_tokens", "system", "messages"}
+    assert {"model", "max_tokens", "system", "messages"}.issubset(set(payload))
     assert payload["model"] == "deepseek-v4-flash"
     assert isinstance(payload["max_tokens"], int)
     assert payload["max_tokens"] > 0

@@ -94,6 +94,7 @@ class SessionTracker:
     def _idle_event_type(self, idle_seconds: int) -> str:
         if idle_seconds >= self.IDLE_15M_SECONDS and not self._emitted_idle_15m:
             self._emitted_idle_15m = True
+            self._emitted_idle_5m = True
             return "idle_15m"
         if idle_seconds >= self.IDLE_5M_SECONDS and not self._emitted_idle_5m:
             self._emitted_idle_5m = True

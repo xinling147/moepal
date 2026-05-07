@@ -46,35 +46,18 @@ class BehaviorEngine:
         )
 
     def _match_rule(self, event: ActivityEvent) -> _RuleDecision:
-        snapshot = event.snapshot
-        active_seconds = getattr(snapshot, "active_seconds", 0) or 0
-        idle_seconds = getattr(snapshot, "idle_seconds", 0) or 0
-        returned_seconds = getattr(snapshot, "returned_from_idle_seconds", None)
-        time_bucket = getattr(snapshot, "time_bucket", None)
-
-        if event.type == "return_from_idle" or (
-            returned_seconds is not None and returned_seconds >= 5 * 60
-        ):
+        if event.type == "return_from_idle":
             return _RuleDecision("wake_up", "welcome_back", 80)
-
-        if event.type == "late_night_active" or (
-            time_bucket == "late_night" and active_seconds >= 30 * 60
-        ):
+        if event.type == "late_night_active":
             return _RuleDecision("concerned", "late_night_care", 75)
-
-        if event.type == "long_active_90m" or active_seconds >= 90 * 60:
+        if event.type == "long_active_90m":
             return _RuleDecision("concerned", "strong_rest_reminder", 70)
-
-        if event.type == "long_active_45m" or active_seconds >= 45 * 60:
+        if event.type == "long_active_45m":
             return _RuleDecision("nudge", "rest_reminder", 50)
-
-        if event.type == "idle_15m" or idle_seconds >= 15 * 60:
+        if event.type == "idle_15m":
             return _RuleDecision("sleep", None, 40)
-
-        if event.type == "idle_5m" or idle_seconds >= 5 * 60:
+        if event.type == "idle_5m":
             return _RuleDecision("sit_wait", None, 30)
-
-        if event.type == "long_active_25m" or active_seconds >= 25 * 60:
+        if event.type == "long_active_25m":
             return _RuleDecision("stretch", "soft_checkin", 20)
-
         return _RuleDecision("idle_lie", None, 10)

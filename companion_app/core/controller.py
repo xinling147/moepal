@@ -50,11 +50,7 @@ class CompanionController:
 
         self._animator.request_action(decision.action_id)
         self._pet_state.current_action = decision.action_id
-        self._pet_state.mood = getattr(
-            decision,
-            "mood",
-            self._infer_mood(decision.action_id, event),
-        )
+        self._pet_state.mood = self._infer_mood(decision.action_id, event)
 
         if not self._bubble_enabled:
             return
@@ -86,7 +82,7 @@ class CompanionController:
 
     def handle_user_interaction(self, interaction_type: str) -> None:
         action = self._INTERACTION_ACTIONS.get(interaction_type)
-        if action is None or not self._interaction_allowed(interaction_type):
+        if action is None or not self._check_and_record_interaction(interaction_type):
             return
 
         action_id, mood = action
@@ -113,7 +109,8 @@ class CompanionController:
         self._pet_state.current_action = action_id
         self._pet_state.mood = self._mood_for_action(action_id)
 
-    def _interaction_allowed(self, interaction_type: str) -> bool:
+    def _check_and_record_interaction(self, interaction_type: str) -> bool:
+        """检查交互是否已过冷却期，同时记录本次交互时间（含副作用）。"""
         now = self._clock()
         last = self._last_interaction_at.get(interaction_type)
         if last is not None and (now - last).total_seconds() < 1.5:

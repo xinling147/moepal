@@ -8,8 +8,6 @@ from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QPainter, QColor, QBrush, QPixmap, QIcon, QAction, QPen, QPolygon
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
 
-from companion_app.animation.actions import ACTIONS
-
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QApplication, QWidget
 
@@ -61,7 +59,7 @@ def setup_tray(
     config: dict | None = None,
     config_path: Path | None = None,
     on_config_saved: Callable[[dict], None] | None = None,
-    on_action_requested: Callable[[str], None] | None = None,
+    on_action_triggered: Callable[[str], None] | None = None,
 ) -> QSystemTrayIcon:
     tray = QSystemTrayIcon()
     tray.setIcon(QIcon(_build_tray_icon_pixmap()))
@@ -84,8 +82,8 @@ def setup_tray(
         )
     menu.addAction(settings_action)
 
-    if on_action_requested is not None:
-        _add_action_test_menu(menu, on_action_requested)
+    if on_action_triggered is not None:
+        _add_action_test_item(menu, on_action_triggered, pet_window)
 
     menu.addSeparator()
 
@@ -127,21 +125,30 @@ def _handle_tray_activation(
     _show_settings_dialog(parent, config, config_path, on_config_saved)
 
 
-def _add_action_test_menu(
+def _add_action_test_item(
     menu: QMenu,
-    on_action_requested: Callable[[str], None],
-) -> QMenu:
-    action_menu = QMenu("动作测试", menu)
-    menu.addMenu(action_menu)
-    for action_id in ACTIONS:
-        action = QAction(action_id, action_menu)
-        action.setData(action_id)
-        action.triggered.connect(
-            lambda _checked=False, requested_action=action_id: on_action_requested(requested_action)
-        )
-        action_menu.addAction(action)
-    menu._action_test_menu = action_menu
-    return action_menu
+    on_action_triggered: Callable[[str], None],
+    parent_window: QWidget,
+) -> None:
+    action = QAction("动作测试", menu)
+    action.triggered.connect(
+        lambda: _show_action_test_dialog(parent_window, on_action_triggered)
+    )
+    menu.addAction(action)
+
+
+def _show_action_test_dialog(
+    parent: QWidget,
+    on_action_triggered: Callable[[str], None],
+) -> None:
+    from companion_app.action_test_window import ActionTestDialog
+
+    dialog = ActionTestDialog(
+        on_action_triggered=on_action_triggered,
+        parent=parent,
+    )
+    parent._action_test_dialog = dialog
+    dialog.show()
 
 
 def _show_settings_dialog(

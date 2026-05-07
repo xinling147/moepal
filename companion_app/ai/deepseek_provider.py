@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "https://api.deepseek.com/anthropic"
 DEFAULT_MODEL = "deepseek-v4-flash"
-DEFAULT_MAX_TOKENS = 80
+DEFAULT_MAX_TOKENS = 160
 DEFAULT_TIMEOUT_SECONDS = 8
 
 
@@ -98,6 +98,7 @@ class DeepSeekAnthropicProvider:
         return {
             "model": self._model,
             "max_tokens": self._max_tokens,
+            "thinking": {"type": "disabled"},
             "system": build_system_prompt(),
             "messages": [
                 {
