@@ -116,11 +116,15 @@ class PetWindow(QWidget):
         if pixmap.isNull():
             return
 
-        scaled = pixmap.scaled(
-            self._pet_size, self._pet_size,
-            Qt.KeepAspectRatio, Qt.SmoothTransformation,
-        )
-        self._pet_label.setPixmap(scaled)
+        if pixmap.width() == self._pet_size and pixmap.height() == self._pet_size:
+            self._pet_label.setPixmap(pixmap)
+        else:
+            self._pet_label.setPixmap(
+                pixmap.scaled(
+                    self._pet_size, self._pet_size,
+                    Qt.KeepAspectRatio, Qt.FastTransformation,
+                )
+            )
 
     def show_bubble(self, text: str, ttl_ms: int = 6000) -> None:
         """Show a speech bubble with text for ttl_ms milliseconds."""
